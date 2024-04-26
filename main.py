@@ -10,20 +10,33 @@ from PyQt5.QtWidgets import *
 ####Window for output plots####
 #Tab-like lists for output graph
 class PlotWindow(QWidget):
-     def __init__(self):
+     def __init__(self, tab_parameters = []):
         super().__init__()
+        tab_parameters = ["xx", "dd", "cc","rr"]
         self.setWindowTitle("Test2")
-        layout = QVBoxLayout()
-        plot = QLabel(self)
-        pixel = QPixmap('C:/Users/yibai/Desktop/zuofu.png')
-        plot.setPixmap(pixel)
-        layout.addWidget(plot)
-        self.setLayout(layout)
+        # layout = QVBoxLayout()
+        # plot = QLabel(self)
+        # pixel = QPixmap('C:/Users/yibai/Desktop/zuofu.png')
+        # plot.setPixmap(pixel)
+        # layout.addWidget(plot)
+        # self.setLayout(layout)
+        self.plot_layout = QVBoxLayout(self)
+        self.plot_tabs = QTabWidget()
+        self.plot_layout.addWidget(self.plot_tabs)
+        self.setLayout(self.plot_layout)
+        for parameter in tab_parameters:
+            new_tab = QTabWidget()
+            self.plot_tabs.addTab(new_tab, parameter)
+        self.plot_tabs.resize(300,300)
+
 
 class MainWindow(QWidget):
     global folder_path #ok
     global file_path
     global csv_file
+    global header
+    global row
+    global column
 
     def __init__(self):
         super().__init__()
@@ -56,8 +69,9 @@ class MainWindow(QWidget):
         self.setGeometry(50,100,660,950)
         ####show plot####
         self.plot_window = None  #to prevent recreation
+
         self.plot.clicked.connect(self.plotWindow)
-        # self.run_sim_btn.clicked.connect(self.run_sim)
+        self.run_sim_btn.clicked.connect(self.runSim)
         self.show()
 
     ####open dialog and allow read and display####
@@ -88,8 +102,20 @@ class MainWindow(QWidget):
         if self.plot_window is None:
             self.plot_window = PlotWindow()
         self.plot_window.show()
+
     ####csv file is updated from QTable#### (ML should be run here)
-    # def run_sim(self):
+    def runSim(self):
+        to_file = np.empty(shape=(self.table_in.rowCount(), self.table_in.colorCount()), dtype=object)
+        header = np.empty(shape=(self.table_in.columnCount(),), dtype=object)
+        for i in range(self.table_in.columnCount()):
+            print(self.table_in.horizontalHeaderItem(i).text())
+            to_file[0][i] = "tttttttt"
+        # print(to_file)
+        # print(self.table_in.horizontalHeaderItem(0).text())
+        # np.append(header, str(self.table_in.horizontalHeaderItem(0).text()))
+        # print(header)
+        # to_file = np.append(header)
+        # print(to_file)
 
     
         
