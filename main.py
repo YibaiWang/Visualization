@@ -1,9 +1,12 @@
-import sys
 import os
+import sys
+import pandas as pd
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
+####Window for output plots####
+#Tab-like lists for output graph
 class PlotWindow(QWidget):
      def __init__(self):
         super().__init__()
@@ -16,21 +19,22 @@ class PlotWindow(QWidget):
         self.setLayout(layout)
 
 class MainWindow(QWidget):
-    global folder_path #not implanted yet
+    global folder_path #ok
+    global file_path
+    global csv_file
+    
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Test")
-        
         ####draw layout####
         h_layout = QVBoxLayout()
-        table_in = QTableWidget()
-        table_in.setColumnCount(3)
-        table_in.setRowCount(15)
+        self.table_in = QTableWidget()
+        # need to set table size later
+        # table_in.setItem(1,1,QTableWidgetItem("1"))
+        # table_in.item(1,1).setBackground(QColor(100,100,100))
         table_out = QTableWidget()
-        table_out.setColumnCount(2)
-        table_out.setRowCount(23)
         splitter1 = QSplitter(Qt.Horizontal)
-        splitter1.addWidget(table_in)
+        splitter1.addWidget(self.table_in)
         splitter1.addWidget(table_out)
         splitter1.setSizes([300,200])
         splitter1.setStretchFactor(0,0)
@@ -52,19 +56,28 @@ class MainWindow(QWidget):
         self.upload_btn.clicked.connect(self.openFileDialog)
         self.setGeometry(50,100,740,950)
         ####show plot####
-        self.w = None  #to prevent recreation
+        self.plot_window = None  #to prevent recreation
         self.plot.clicked.connect(self.plotWindow)
         self.show()
+    ####open dialog and allow read and display####
     def openFileDialog(self):
         path = "c:\\"
         filename = QFileDialog.getOpenFileName(self, "OpenFile", path, "CSV Files (*.csv)")
         file_path = filename[0]
-        self.text.setText(file_path)
+        folder_path = os.path.abspath(os.path.join(file_path, "..")) #general way of getting parent path
+        self.text.setText(folder_path)
+        csv_file = pd.read_csv(file_path)
+        row = csv_file.shape[0]
+        column = csv_file.shape[1]
+        self.table_in.setColumnCount(column)
+        self.table_in.setRowCount(row)
+
     def plotWindow(self):
         ####to prevent recreation####
-        if self.w is None:
-            self.w = PlotWindow()
-        self.w.show()    
+        if self.plot_window is None:
+            self.plot_window = PlotWindow()
+        self.plot_window.show()
+    
         
 if __name__ == "__main__":
     app = QApplication(sys.argv)
