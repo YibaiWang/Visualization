@@ -1,2 +1,3 @@
 Work in progress...
 2024/04/16 Initial look set-up
+2024/04/26 New plot windows and read functionality accomplished
