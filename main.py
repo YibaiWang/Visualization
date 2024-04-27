@@ -7,12 +7,19 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
+tab_parameter = []
+file_path = ''
+folder_path = ''
+row = 0
+column = 0
+####Window for output values####
+##to be implemented##
+
 ####Window for output plots####
 #Tab-like lists for output graph
 class PlotWindow(QWidget):
      def __init__(self, tab_parameters = []):
         super().__init__()
-        tab_parameters = ["xx", "dd", "cc","rr"]
         self.setWindowTitle("Test2")
         # layout = QVBoxLayout()
         # plot = QLabel(self)
@@ -27,16 +34,12 @@ class PlotWindow(QWidget):
         for parameter in tab_parameters:
             new_tab = QTabWidget()
             self.plot_tabs.addTab(new_tab, parameter)
-        self.plot_tabs.resize(300,300)
+        self.setFixedSize(500,500)
 
 
 class MainWindow(QWidget):
-    global folder_path #ok
-    global file_path
     global csv_file
     global header
-    global row
-    global column
 
     def __init__(self):
         super().__init__()
@@ -44,9 +47,6 @@ class MainWindow(QWidget):
         ####draw layout####
         h_layout = QVBoxLayout()
         self.table_in = QTableWidget()
-        # need to set table size later
-        # table_in.setItem(1,1,QTableWidgetItem("1"))
-        # table_in.item(1,1).setBackground(QColor(100,100,100))
         splitter1 = QSplitter(Qt.Horizontal)
         splitter1.addWidget(self.table_in)
         splitter1.setStretchFactor(0,0)
@@ -67,9 +67,9 @@ class MainWindow(QWidget):
         ####upload dialog####
         self.upload_btn.clicked.connect(self.openFileDialog)
         self.setGeometry(50,100,660,950)
+        self.setFixedSize(660, 950)
         ####show plot####
         self.plot_window = None  #to prevent recreation
-
         self.plot.clicked.connect(self.plotWindow)
         self.run_sim_btn.clicked.connect(self.runSim)
         self.show()
@@ -82,7 +82,6 @@ class MainWindow(QWidget):
         folder_path = os.path.abspath(os.path.join(file_path, "..")) #general way of getting parent path
         self.text.setText(folder_path)
         csv_file = genfromtxt(file_path, delimiter=',', dtype=str)
-        print(csv_file)
         row = csv_file.shape[0]     #22
         column = csv_file.shape[1]      #3
         self.table_in.setColumnCount(column)
@@ -92,15 +91,21 @@ class MainWindow(QWidget):
         self.table_in.setColumnWidth(0, 200)
         self.table_in.setColumnWidth(1, 200)
         self.table_in.setColumnWidth(2, 200)
+        ####write to QTable####
         for x in range(row):
             for y in range(column):
-                if x+1 <= 22:
+                if x+1 < row:
                     self.table_in.setItem(x,y, QTableWidgetItem(csv_file[x+1][y]))
+        ####set for tab parameters####
+        for x in range(row):
+                if x+1 < row:
+                    tab_parameter.append(csv_file[x][2])
+        print(tab_parameter)
 
     def plotWindow(self):
         ####to prevent recreation####
         if self.plot_window is None:
-            self.plot_window = PlotWindow()
+            self.plot_window = PlotWindow(tab_parameter)
         self.plot_window.show()
 
     ####csv file is updated from QTable#### (ML should be run here)
