@@ -99,7 +99,7 @@ class MainWindow(QWidget):
         ####set for tab parameters####
         for x in range(row):
                 if x+1 < row:
-                    tab_parameter.append(csv_file[x][2])
+                    tab_parameter.append(csv_file[x+1][2])
         print(tab_parameter)
 
     def plotWindow(self):
