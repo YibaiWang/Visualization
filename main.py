@@ -66,8 +66,7 @@ class MainWindow(QWidget):
         self.setLayout(h_layout)
         ####upload dialog####
         self.upload_btn.clicked.connect(self.openFileDialog)
-        self.setGeometry(50,100,660,950)
-        self.setFixedSize(660, 950)
+        self.setGeometry(50,100,1000,1000)
         ####show plot####
         self.plot_window = None  #to prevent recreation
         self.plot.clicked.connect(self.plotWindow)
@@ -79,28 +78,44 @@ class MainWindow(QWidget):
         path = "c:\\"
         filename = QFileDialog.getOpenFileName(self, "OpenFile", path, "CSV Files (*.csv)")
         file_path = filename[0]
-        folder_path = os.path.abspath(os.path.join(file_path, "..")) #general way of getting parent path
-        self.text.setText(folder_path)
-        csv_file = genfromtxt(file_path, delimiter=',', dtype=str)
-        row = csv_file.shape[0]     #22
-        column = csv_file.shape[1]      #3
-        self.table_in.setColumnCount(column)
-        self.table_in.setRowCount(row)
-        header = csv_file[0]
-        self.table_in.setHorizontalHeaderLabels(header)
-        self.table_in.setColumnWidth(0, 200)
-        self.table_in.setColumnWidth(1, 200)
-        self.table_in.setColumnWidth(2, 200)
-        ####write to QTable####
-        for x in range(row):
-            for y in range(column):
-                if x+1 < row:
-                    self.table_in.setItem(x,y, QTableWidgetItem(csv_file[x+1][y]))
-        ####set for tab parameters####
-        for x in range(row):
-                if x+1 < row:
-                    tab_parameter.append(csv_file[x+1][2])
-        print(tab_parameter)
+        if file_path != '':     # to avoid empty file
+            folder_path = os.path.abspath(os.path.join(file_path, "..")) #general way of getting parent path
+            self.text.setText(file_path)
+            print(folder_path)
+            csv_file = genfromtxt(file_path, delimiter=',', dtype=str)
+            row = csv_file.shape[0]     #22
+            column = csv_file.shape[1] + 3    #3
+            self.table_in.setColumnCount(column)
+            self.table_in.setRowCount(row)
+            header = np.full(column, '', dtype=object)
+            header[0] = csv_file[0][0]
+            header[1] = csv_file[0][1]
+            header[2] = "Sim Value"
+            header[3] = "Trend"
+            header[4] = csv_file[0][2]
+            header[5] = "Parameter Value"
+            self.table_in.setHorizontalHeaderLabels(header)
+            self.table_in.setColumnWidth(0, 200)
+            self.table_in.setColumnWidth(1, 200)
+            self.table_in.setColumnWidth(2, 200)
+            self.table_in.setColumnWidth(3, 200)
+            self.table_in.setColumnWidth(4, 200)
+            self.table_in.setColumnWidth(5, 200)
+            ####write to QTable####
+            csv_file_mod = np.full((row, column), '', dtype=object)
+            csv_file_mod[:, 0] = csv_file[:, 0]
+            csv_file_mod[:, 1] = csv_file[:, 1]
+            csv_file_mod[:, 4] = csv_file[:, 2]
+            print(csv_file_mod)
+            for x in range(row):
+                for y in range(column):
+                    if x+1 < row:
+                        self.table_in.setItem(x,y, QTableWidgetItem(csv_file_mod[x+1][y]))
+            ####set for tab parameters####
+            for x in range(row):
+                    if x+1 < row:
+                        tab_parameter.append(csv_file[x][2])
+            print(tab_parameter)
 
     def plotWindow(self):
         ####to prevent recreation####
@@ -110,11 +125,31 @@ class MainWindow(QWidget):
 
     ####csv file is updated from QTable#### (ML should be run here)
     def runSim(self):
-        to_file = np.empty(shape=(self.table_in.rowCount(), self.table_in.colorCount()), dtype=object)
-        header = np.empty(shape=(self.table_in.columnCount(),), dtype=object)
-        for i in range(self.table_in.columnCount()):
-            print(self.table_in.horizontalHeaderItem(i).text())
-            to_file[0][i] = "tttttttt"
+        r = self.table_in.rowCount()
+        c = self.table_in.columnCount()
+        to_file = np.full((r+1, c), '', dtype=object)
+        for i in range(r):
+            for j in range(c):
+                if self.table_in.item(i,j) is not None:
+                    to_file[i+1][j] = self.table_in.item(i,j).text()
+                else:
+                    to_file[i+1][j] = ''
+        r = r + 1
+        actual_to_file = np.full((r, c-2), '', dtype=object)
+        actual_to_file[:, 0] = to_file[:, 0]
+        actual_to_file[:, 1] = to_file[:, 1]
+        actual_to_file[:, 2] = to_file[:, 4]
+        actual_to_file[:, 3] = to_file[:, 5]
+        actual_to_file[0][0] = self.table_in.horizontalHeaderItem(0).text()
+        actual_to_file[0][1] = self.table_in.horizontalHeaderItem(1).text()
+        actual_to_file[0][2] = self.table_in.horizontalHeaderItem(4).text()
+        actual_to_file[0][3] = self.table_in.horizontalHeaderItem(5).text()
+        p = self.text.text()
+        df=pd.DataFrame(actual_to_file)
+        df.to_csv(p, header=False, index=False)
+        # np.savetxt(p, actual_to_file, delimiter=' ')
+
+
         # print(to_file)
         # print(self.table_in.horizontalHeaderItem(0).text())
         # np.append(header, str(self.table_in.horizontalHeaderItem(0).text()))
