@@ -80,7 +80,7 @@
  [],
  False,
  False,
- 1714367204,
+ 1715369981,
  [('run.exe',
    'C:\\Users\\Shiro\\AppData\\Local\\Programs\\Python\\Python38\\lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit-intel\\run.exe',
    'EXECUTABLE')],
