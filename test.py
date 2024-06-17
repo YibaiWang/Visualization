@@ -47,8 +47,10 @@ class MainWindow(QWidget):
         ####draw layout####
         h_layout = QVBoxLayout()
         self.table_in = QTableWidget()
+        self.table_in2 = QTableWidget()
         splitter1 = QSplitter(Qt.Horizontal)
         splitter1.addWidget(self.table_in)
+        splitter1.addWidget(self.table_in2)
         splitter1.setStretchFactor(0,0)
         self.upload_btn = QPushButton("upload")
         self.text = QLabel("Please upload your input file")
@@ -78,44 +80,58 @@ class MainWindow(QWidget):
         path = "c:\\"
         filename = QFileDialog.getOpenFileName(self, "OpenFile", path, "CSV Files (*.csv)")
         file_path = filename[0]
-        if file_path != '':     # to avoid empty file
+        if file_path != '':     # to avoid empty file crash
             folder_path = os.path.abspath(os.path.join(file_path, "..")) #general way of getting parent path
             self.text.setText(file_path)
             print(folder_path)
-            csv_file = genfromtxt(file_path, delimiter=',', dtype=str)
+            csv_file = genfromtxt(file_path, encoding='utf-8-sig', delimiter=',', dtype=str)        # to avoid special character 
             row = csv_file.shape[0]     #22
-            column = csv_file.shape[1] + 3    #3
+            column = 5    #3
             self.table_in.setColumnCount(column)
             self.table_in.setRowCount(row)
             header = np.full(column, '', dtype=object)
             header[0] = csv_file[0][0]
             header[1] = csv_file[0][1]
-            header[2] = "Sim Value"
-            header[3] = "Trend"
-            header[4] = csv_file[0][2]
-            header[5] = "Parameter Value"
+            header[2] = csv_file[0][2]
+            header[3] = "Sim Value"
+            header[4] = "Trend"
+            row2 = row
+            column2 = 3
+            self.table_in2.setColumnCount(column2)
+            self.table_in2.setRowCount(row2)
+            header2 = np.full(column, '', dtype=object)
+            header2[0] = csv_file[0][2]
+            header2[1] = "Parameter Value"
+            header2[2] = "Trend"
             self.table_in.setHorizontalHeaderLabels(header)
             self.table_in.setColumnWidth(0, 200)
             self.table_in.setColumnWidth(1, 200)
             self.table_in.setColumnWidth(2, 200)
             self.table_in.setColumnWidth(3, 200)
             self.table_in.setColumnWidth(4, 200)
-            self.table_in.setColumnWidth(5, 200)
+            self.table_in2.setHorizontalHeaderLabels(header2)
+            self.table_in2.setColumnWidth(0, 200)
+            self.table_in2.setColumnWidth(1, 200)
+            self.table_in2.setColumnWidth(2, 200)
             ####write to QTable####
             csv_file_mod = np.full((row, column), '', dtype=object)
+            csv_file_mod2 = np.full((row2, column2), '', dtype=object)
             csv_file_mod[:, 0] = csv_file[:, 0]
             csv_file_mod[:, 1] = csv_file[:, 1]
-            csv_file_mod[:, 4] = csv_file[:, 2]
-            print(csv_file_mod)
+            csv_file_mod[:, 2] = csv_file[:, 2]
+            csv_file_mod2[:, 0] = csv_file[:, 3]
             for x in range(row):
                 for y in range(column):
                     if x+1 < row:
-                        self.table_in.setItem(x,y, QTableWidgetItem(csv_file_mod[x+1][y]))
+                        self.table_in.setItem(x,y, QTableWidgetItem(csv_file_mod[x+1][y]))           
+            for x in range(row2):
+                for y in range (column2):
+                    if x+1 < row2:
+                        self.table_in2.setItem(x,y, QTableWidgetItem(csv_file_mod2[x+1][y]))
             ####set for tab parameters####
             for x in range(row):
                     if x+1 < row:
                         tab_parameter.append(csv_file[x][2])
-            print(tab_parameter)
 
     def plotWindow(self):
         ####to prevent recreation####
@@ -147,15 +163,7 @@ class MainWindow(QWidget):
         p = self.text.text()
         df=pd.DataFrame(actual_to_file)
         df.to_csv(p, header=False, index=False)
-        # np.savetxt(p, actual_to_file, delimiter=' ')
-
-
-        # print(to_file)
-        # print(self.table_in.horizontalHeaderItem(0).text())
-        # np.append(header, str(self.table_in.horizontalHeaderItem(0).text()))
-        # print(header)
-        # to_file = np.append(header)
-        # print(to_file)
+        # os.system("python analyze_pvt.py")      # Better idea?
 
     
         

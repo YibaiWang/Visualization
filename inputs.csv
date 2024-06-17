@@ -1,0 +1,23 @@
+Spec,Output,Value (threshold),Circuit Device Parameter
+Vreg,ac_vreg,> 9.3 mV,Wcurr
+Deadband width,ac_deadband_width,> 10 mV,Lcurr
+Full conduction threshold,ac_full_conduction_threshold,< 80 mV,WGK
+Isink at VAK = 0,ac_isnk,< -6.7 uA,Wsink
+Peak Isource,ac_peak_isource_low_limit,45 uA - 80 uA,LGK
+Phase Margin,ac_pm,> 24 deg,WNcas
+mn28_vgs_margin,ac_mn28_vgs_margin,> 40 mV,LNCas
+mn37_vgs_margin,ac_mn37_vgs_margin,> 0 V,WNmirr
+mn41_vds_margin,ac_mn41_vds_margin,> 25 mV,LNmirr
+mn41_vgs_margin,ac_mn41_vgs_margin,> 40 mV,WPCas
+mp31_vds_margin,ac_mp31_vds_margin,> 25 mV,LPCas
+mp31_vgs_margin,ac_mp31_vgs_margin,< -40 mV,WPCH
+mp36_vds_margin,ac_mp36_vds_margin,> 25 mV,LPCH
+mp36_vgs_margin,ac_mp36_vgs_margin,< -10 mV,W1Pmirr
+,,,W2Pmirr_by_W1Pmirr_ratio
+,,,LPmirr
+,,,WPU
+,,,LPU
+,,,resNAT1
+,,,resNAT2
+,,,ResPMOS
+,,,WDEP
