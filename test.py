@@ -8,6 +8,9 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
 tab_parameter = []
+tab_par = []
+output_parameter = []
+output_par = []
 file_path = ''
 folder_path = ''
 row = 0
@@ -15,27 +18,34 @@ column = 0
 ####Window for output values####
 ##to be implemented##
 
+####To set for read-only/non-editable Qtable cells####
+class ReadOnly(QStyledItemDelegate):
+    def createEditor(self, parent, option, index):
+        return None
+    
 ####Window for output plots####
 #Tab-like lists for output graph
 class PlotWindow(QWidget):
-     def __init__(self, tab_parameters = []):
+     def resizeEvent(self, event):      # works, but the process looks lagging
+        new_width = event.size().width()
+        new_height = int(new_width / self.aspect_ratio)
+        self.resize(new_width, new_height)
+     def __init__(self, tab_par = [], output_par = []):
         super().__init__()
-        self.setWindowTitle("Test2")
-        # layout = QVBoxLayout()
-        # plot = QLabel(self)
-        # pixel = QPixmap('C:/Users/yibai/Desktop/zuofu.png')
-        # plot.setPixmap(pixel)
-        # layout.addWidget(plot)
-        # self.setLayout(layout)
-        self.plot_layout = QVBoxLayout(self)
+        self.aspect_ratio = 1
+        self.plot_layout = QVBoxLayout()
         self.plot_tabs = QTabWidget()
         self.plot_layout.addWidget(self.plot_tabs)
         self.setLayout(self.plot_layout)
-        for parameter in tab_parameters:
-            new_tab = QTabWidget()
-            self.plot_tabs.addTab(new_tab, parameter)
-        self.setFixedSize(500,500)
-
+        for i in range(len(tab_par)-1):
+            # new_tab = QTabWidget()
+            label = QLabel()
+            file = 'PVT_result/design_point_0/' + output_par[i+1] + '.tif'      # need resize
+            pixmap = QPixmap(file)
+            scaled_pixmap = pixmap.scaled(500,500, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            label.setPixmap(scaled_pixmap)
+            label.setScaledContents(True)
+            self.plot_tabs.addTab(label, tab_par[i+1])
 
 class MainWindow(QWidget):
     global csv_file
@@ -100,7 +110,7 @@ class MainWindow(QWidget):
             self.table_in2.setColumnCount(column2)
             self.table_in2.setRowCount(row2)
             header2 = np.full(column, '', dtype=object)
-            header2[0] = csv_file[0][2]
+            header2[0] = csv_file[0][3]
             header2[1] = "Parameter Value"
             header2[2] = "Trend"
             self.table_in.setHorizontalHeaderLabels(header)
@@ -131,12 +141,21 @@ class MainWindow(QWidget):
             ####set for tab parameters####
             for x in range(row):
                     if x+1 < row:
-                        tab_parameter.append(csv_file[x][2])
-
+                        tab_parameter.append(csv_file[x][0])
+                        output_parameter.append(csv_file[x][1])
+            for i in range(len(tab_parameter)):
+                if tab_parameter[i] != '':
+                    tab_par.append(tab_parameter[i])
+                    output_par.append(output_parameter[i])
+            self.table_in.setItemDelegateForColumn(0, ReadOnly(self))
+            self.table_in.setItemDelegateForColumn(1, ReadOnly(self))
+            self.table_in.setItemDelegateForColumn(2, ReadOnly(self))
+            self.table_in2.setItemDelegateForColumn(0, ReadOnly(self))
+            
     def plotWindow(self):
         ####to prevent recreation####
         if self.plot_window is None:
-            self.plot_window = PlotWindow(tab_parameter)
+            self.plot_window = PlotWindow(tab_par, output_par)
         self.plot_window.show()
 
     ####csv file is updated from QTable#### (ML should be run here)
@@ -145,27 +164,44 @@ class MainWindow(QWidget):
         c = self.table_in.columnCount()
         to_file = np.full((r+1, c), '', dtype=object)
         for i in range(r):
-            for j in range(c):
+            for j in range (c):
                 if self.table_in.item(i,j) is not None:
                     to_file[i+1][j] = self.table_in.item(i,j).text()
                 else:
                     to_file[i+1][j] = ''
-        r = r + 1
-        actual_to_file = np.full((r, c-2), '', dtype=object)
+        to_file2 = np.full((r+1, 3), '', dtype=object)
+        for i in range(r):
+            for j in range(3):
+                if self.table_in2.item(i,j) is not None:
+                    to_file2[i+1][j] = self.table_in2.item(i,j).text()
+                else:
+                    to_file2[i+1][j] = ''
+        actual_to_file = np.full((r+1, 5), '', dtype=object)
         actual_to_file[:, 0] = to_file[:, 0]
         actual_to_file[:, 1] = to_file[:, 1]
-        actual_to_file[:, 2] = to_file[:, 4]
-        actual_to_file[:, 3] = to_file[:, 5]
+        actual_to_file[:, 2] = to_file[:, 2]
+        actual_to_file[:, 3] = to_file2[:, 0]
+        actual_to_file[:, 4] = to_file2[:, 1]
         actual_to_file[0][0] = self.table_in.horizontalHeaderItem(0).text()
         actual_to_file[0][1] = self.table_in.horizontalHeaderItem(1).text()
-        actual_to_file[0][2] = self.table_in.horizontalHeaderItem(4).text()
-        actual_to_file[0][3] = self.table_in.horizontalHeaderItem(5).text()
+        actual_to_file[0][2] = self.table_in.horizontalHeaderItem(2).text()
+        actual_to_file[0][3] = self.table_in2.horizontalHeaderItem(0).text()
+        actual_to_file[0][4] = self.table_in2.horizontalHeaderItem(1).text()
         p = self.text.text()
         df=pd.DataFrame(actual_to_file)
         df.to_csv(p, header=False, index=False)
         # os.system("python analyze_pvt.py")      # Better idea?
-
-    
+        spec_trend = 'PVT_result/output_trends.csv'
+        par_trend = 'PVT_result/trends.csv'
+        if os.path.exists(spec_trend) and os.path.exists(par_trend):
+            spec = genfromtxt(spec_trend, encoding='utf-8-sig', delimiter=',', dtype=str)
+            par = genfromtxt(par_trend, encoding='utf-8-sig', delimiter=',', dtype=str)
+            for i in range(spec.shape[0]):
+                if i+1 < spec.shape[0]:
+                    self.table_in.setItem(i,4,QTableWidgetItem(spec[i+1][2]))
+            for i in range(par.shape[0]):
+                if i+1 < par.shape[0]:
+                    self.table_in2.setItem(i,2,QTableWidgetItem(par[i+1][2]))
         
 if __name__ == "__main__":
     app = QApplication(sys.argv)

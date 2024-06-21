@@ -1,0 +1,12 @@
+{
+  "base_url": "/",
+  "hostname": "localhost",
+  "notebook_dir": "C:\\Users\\Shiro\\Desktop\\Mp3",
+  "password": false,
+  "pid": 35888,
+  "port": 8888,
+  "secure": false,
+  "sock": "",
+  "token": "42303b51dfa596da769c38379446af2af311ffbec0d43f1b",
+  "url": "http://localhost:8888/"
+}

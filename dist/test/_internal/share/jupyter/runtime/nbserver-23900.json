@@ -1,0 +1,12 @@
+{
+  "base_url": "/",
+  "hostname": "localhost",
+  "notebook_dir": "C:\\Users\\Shiro\\Desktop\\Project",
+  "password": false,
+  "pid": 23900,
+  "port": 8888,
+  "secure": false,
+  "sock": "",
+  "token": "16ea687ade19affd4814dca04d5d2552c6f83efc508d693c",
+  "url": "http://localhost:8888/"
+}
